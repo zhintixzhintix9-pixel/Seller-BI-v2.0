@@ -231,21 +231,20 @@
         }
 
         .logo-box {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             background: var(--kaspi-red);
-            border-radius: 8px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 15px rgba(229, 9, 20, 0.4);
+            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
             margin-right: 12px;
-        }
-
-        .logo-box span {
-            font-weight: 900;
-            font-size: 20px;
             color: white;
+            font-weight: 800;
+            font-size: 14px;
+            flex-shrink: 0;
+            letter-spacing: -0.5px;
         }
 
         .btn-primary {
@@ -261,6 +260,10 @@
             outline: none;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
         .btn-primary:active {
@@ -374,7 +377,7 @@
     <!-- HEADER -->
     <header>
         <div class="flex items-center">
-            <img src="logo.png" id="app-logo" style="width: 44px; height: 44px; border-radius: 10px; margin-right: 12px; object-fit: cover; background: white; padding: 2px; border: 1px solid var(--glass-border); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+            <div class="logo-box">SBI</div>
             <div>
                 <h1 class="text-white text-base sm:text-lg font-bold leading-none">Seller BI <span style="color:var(--kaspi-red)">v2.0</span></h1>
                 <p class="text-[10px] text-silver font-medium mt-1 uppercase tracking-wider">powered by zhumash tech</p>
@@ -385,10 +388,7 @@
                 <div id="user-name-header" class="text-[13px] font-semibold">Guest User</div>
                 <div id="user-role-header" class="text-[10px] text-silver uppercase">Standard Member</div>
             </div>
-            <div id="auth-buttons" class="flex items-center gap-2">
-                <button id="login-btn" class="hidden text-[10px] font-bold text-white bg-red-600 px-3 py-1.5 rounded-lg active:scale-95 transition-transform uppercase">Вход</button>
-                <button id="logout-btn" class="hidden text-[10px] font-bold text-silver border border-silver/30 px-3 py-1.5 rounded-lg active:scale-95 transition-transform uppercase">Выход</button>
-            </div>
+            <button id="edit-profile-btn-header" class="text-[10px] font-bold text-white bg-white/10 border border-white/10 px-3 py-2 rounded-lg active:scale-95 transition-transform uppercase">Профиль</button>
             <button id="theme-toggle">🌙</button>
         </div>
     </header>
@@ -531,7 +531,7 @@
             <button id="save-settings" class="btn-primary mt-8">ОБНОВИТЬ СИСТЕМНЫЕ ПАРАМЕТРЫ</button>
         </div>
 
-        <div class="glass-card mt-6 p-8 flex items-center justify-between">
+        <div id="edit-profile-btn" class="glass-card mt-6 p-8 flex items-center justify-between cursor-pointer hover:bg-white/5 active:scale-[0.98] transition-all">
             <div class="flex items-center gap-5">
                 <div id="user-avatar" class="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center font-black text-xl shadow-lg shadow-red-600/20 text-white overflow-hidden">
                     <span id="user-initials">?</span>
@@ -565,16 +565,25 @@
         </a>
     </nav>
 
-    <!-- LOGIN OVERLAY -->
+    <!-- PROFILE OVERLAY (REPLACES LOGIN) -->
     <div id="login-screen" class="fixed inset-0 z-[2000] bg-black/80 backdrop-blur-3xl flex items-center justify-center p-6 transition-opacity duration-500 opacity-0 pointer-events-none">
         <div class="glass-card max-w-sm w-full p-10 text-center scale-90 transition-transform duration-500">
-            <img src="logo.png" class="w-20 h-20 mx-auto mb-6 rounded-2xl shadow-xl border border-white/10">
+            <div class="logo-box mx-auto mb-6 scale-150 !mr-0">SBI</div>
             <h2 class="text-2xl font-bold text-white mb-2">Seller BI v2.0</h2>
-            <p class="text-silver text-sm mb-8 font-medium">Добро пожаловать в элитарную аналитику Kaspi. Пожалуйста, авторизуйтесь.</p>
-            <button id="google-login-btn" class="bg-white text-black font-bold py-4 px-6 rounded-xl w-full flex items-center justify-center gap-3 shadow-lg shadow-white/5 hover:scale-105 active:scale-95 transition-all">
-                <svg class="w-6 h-6" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/><path fill="none" d="M1 1L23 23"/></svg>
-                Google Sign In
-            </button>
+            <p class="text-silver text-sm mb-8 font-medium">Добро пожаловать. Настройте свой профиль для работы.</p>
+            
+            <form id="profile-form" class="text-left">
+                <label>Ваше Имя</label>
+                <input type="text" id="reg-name" placeholder="Введите имя" required>
+                
+                <label>Название ИП / Компании</label>
+                <input type="text" id="reg-company" placeholder="Напр: ИП ЖУМАШ" required>
+                
+                <button type="submit" class="btn-primary mt-4 accent-shadow">
+                    СОХРАНИТЬ И ВОЙТИ
+                </button>
+            </form>
+
             <p class="text-[10px] text-silver/50 mt-8 uppercase tracking-widest font-bold">powered by zhumash tech</p>
         </div>
     </div>
@@ -583,7 +592,6 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, deleteDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         // --- CONFIG ---
         const firebaseConfig = {
@@ -598,14 +606,12 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
 
-        // --- AUTH LOGIC ---
+        // --- LOCAL PROFILE LOGIC ---
         const loginScreen = document.getElementById('login-screen');
-        const googleLoginBtn = document.getElementById('google-login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const loginBtnHeader = document.getElementById('login-btn');
+        const profileForm = document.getElementById('profile-form');
+        const editProfileBtn = document.getElementById('edit-profile-btn');
+        const editProfileBtnHeader = document.getElementById('edit-profile-btn-header');
 
         function toggleLoginScreen(show) {
             if (show) {
@@ -619,49 +625,53 @@
             }
         }
 
-        googleLoginBtn.onclick = () => signInWithPopup(auth, provider).catch(console.error);
-        logoutBtn.onclick = () => signOut(auth).catch(console.error);
-        loginBtnHeader.onclick = () => toggleLoginScreen(true);
+        profileForm.onsubmit = (e) => {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const company = document.getElementById('reg-company').value;
+            
+            const profile = { name, company, id: Date.now() };
+            localStorage.setItem('sbi_profile', JSON.stringify(profile));
+            
+            updateUIForUser(profile);
+            toggleLoginScreen(false);
+            listenToSales();
+            listenToInventory();
+        };
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                toggleLoginScreen(false);
-                updateUIForUser(user);
+        const handleEditProfile = () => {
+            const current = JSON.parse(localStorage.getItem('sbi_profile'));
+            if(current) {
+                document.getElementById('reg-name').value = current.name;
+                document.getElementById('reg-company').value = current.company;
+            }
+            toggleLoginScreen(true);
+        };
+
+        editProfileBtn.onclick = handleEditProfile;
+        editProfileBtnHeader.onclick = handleEditProfile;
+
+        function checkAuth() {
+            const profile = localStorage.getItem('sbi_profile');
+            if (profile) {
+                const data = JSON.parse(profile);
+                updateUIForUser(data);
                 listenToSales();
                 listenToInventory();
-                document.getElementById('logout-btn').classList.remove('hidden');
-                document.getElementById('login-btn').classList.add('hidden');
-            } else {
-                updateUIForGuest();
-                document.getElementById('logout-btn').classList.add('hidden');
-                document.getElementById('login-btn').classList.remove('hidden');
-                // Don't auto-show login if preloader is still active, wait for preloader to end
+                return true;
             }
-        });
-
-        function updateUIForUser(user) {
-            document.getElementById('user-name-header').innerText = user.displayName || 'Seller';
-            document.getElementById('user-role-header').innerText = 'Premium Member';
-            document.getElementById('user-full-name').innerText = user.displayName;
-            document.getElementById('user-email-display').innerText = user.email;
-            document.getElementById('user-initials').innerText = (user.displayName || '?').split(' ').map(n => n[0]).join('');
-            document.getElementById('account-status-tag').innerText = 'ACTIVE';
-            document.getElementById('account-status-tag').classList.replace('text-silver', 'text-green-400');
-            
-            if (user.photoURL) {
-                document.getElementById('user-avatar').innerHTML = `<img src="${user.photoURL}" class="w-full h-full object-cover">`;
-            }
+            return false;
         }
 
-        function updateUIForGuest() {
-            document.getElementById('user-name-header').innerText = 'Guest User';
-            document.getElementById('user-role-header').innerText = 'Limited Access';
-            document.getElementById('user-full-name').innerText = 'Авторизуйтесь';
-            document.getElementById('user-email-display').innerText = 'Вход не выполнен';
-            document.getElementById('user-initials').innerText = '?';
-            document.getElementById('account-status-tag').innerText = 'OFFLINE';
-            document.getElementById('account-status-tag').classList.replace('text-green-400', 'text-silver');
-            document.getElementById('user-avatar').innerHTML = `<span id="user-initials">?</span>`;
+        function updateUIForUser(profile) {
+            document.getElementById('user-name-header').innerText = profile.name;
+            document.getElementById('user-role-header').innerText = profile.company;
+            document.getElementById('user-full-name').innerText = profile.name;
+            document.getElementById('user-email-display').innerText = profile.company;
+            document.getElementById('user-initials').innerText = profile.name.split(' ').map(n => n[0]).join('').slice(0, 2);
+            document.getElementById('account-status-tag').innerText = 'ACTIVE';
+            document.getElementById('account-status-tag').classList.remove('text-silver');
+            document.getElementById('account-status-tag').classList.add('text-green-400');
         }
 
         // --- STATE ---
@@ -717,7 +727,7 @@
                 ease: "power4.inOut",
                 delay: 0.3,
                 onComplete: () => {
-                    if (!auth.currentUser) toggleLoginScreen(true);
+                    if (!checkAuth()) toggleLoginScreen(true);
                 }
             });
 
