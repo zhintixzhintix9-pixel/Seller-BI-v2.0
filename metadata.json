@@ -1,0 +1,6 @@
+{
+  "name": "Seller BI v2.0",
+  "description": "Premium analytics cloud platform for Kaspi sellers. Real-time sales tracking, inventory management, and profit calculation with a sleek Apple-inspired interface.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

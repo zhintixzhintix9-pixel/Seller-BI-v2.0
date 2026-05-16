@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Seller BI v2.0 | FinSol</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Great+Vibes&display=swap" rel="stylesheet">
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Tailwind CSS (for utility classes) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        :root {
+            --kaspi-red: #E50914;
+            --kaspi-red-dark: #b30710;
+            --obsidian: #05050b;
+            --graphite: #111114;
+            --glass: rgba(26, 26, 31, 0.7);
+            --glass-border: rgba(229, 9, 20, 0.15);
+            --text-white: #FFFFFF;
+            --text-silver: #A1A1AA;
+            --card-shadow: rgba(0, 0, 0, 0.4);
+        }
+
+        body.light-theme {
+            --obsidian: #F5F5F7;
+            --graphite: #FFFFFF;
+            --glass: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(229, 9, 20, 0.08);
+            --text-white: #1D1D1F;
+            --text-silver: #4B4B4B;
+            --card-shadow: rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--obsidian);
+            color: var(--text-white);
+            overflow-x: hidden;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bg-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(229, 9, 20, 0.15) 0%, rgba(17, 17, 20, 0) 70%);
+            filter: blur(80px);
+            z-index: -1;
+            top: -200px;
+            right: -200px;
+        }
+
+        /* --- PRELOADER (iOS 15 HELLO) --- */
+        #preloader {
+            position: fixed;
+            inset: 0;
+            background: #F5F5F7;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .liquid-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            filter: blur(60px);
+            z-index: -1;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: move 20s infinite alternate;
+        }
+
+        @keyframes move {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(50%, 50%) rotate(360deg); }
+        }
+
+        #hello-text-svg {
+            width: 300px;
+            overflow: visible;
+        }
+
+        /* --- UI COMPONENTS --- */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px var(--card-shadow);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.3s, border 0.3s;
+        }
+
+        .stat-card {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 110px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-silver);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-white);
+            letter-spacing: -0.5px;
+        }
+
+        .accent-shadow {
+            box-shadow: 0 0 20px rgba(229, 9, 20, 0.4);
+        }
+
+        .tab-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            max-width: 600px;
+            height: 72px;
+            background: var(--obsidian);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 10px 40px var(--card-shadow);
+            z-index: 100;
+            transition: background 0.3s, border 0.3s;
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-silver);
+            font-size: 10px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            flex: 1;
+        }
+
+        .tab-item.active {
+            color: var(--kaspi-red);
+        }
+
+        .tab-icon {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s;
+        }
+
+        .tab-item.active .tab-icon {
+            transform: translateY(-2px);
+            filter: drop-shadow(0 0 5px var(--kaspi-red));
+        }
+
+        .screen {
+            position: absolute;
+            inset: 0;
+            padding: 24px;
+            padding-top: 85px;
+            padding-bottom: 120px;
+            overflow-y: auto;
+            visibility: hidden;
+            opacity: 0;
+            transform: scale(0.95);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .screen.active {
+            visibility: visible;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 75px;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 90;
+            transition: background 0.3s, border 0.3s;
+        }
+
+        .logo-box {
+            width: 40px;
+            height: 40px;
+            background: var(--kaspi-red);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 15px rgba(229, 9, 20, 0.4);
+            margin-right: 12px;
+        }
+
+        .logo-box span {
+            font-weight: 900;
+            font-size: 20px;
+            color: white;
+        }
+
+        .btn-primary {
+            background: var(--kaspi-red);
+            color: white;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            width: 100%;
+            transition: all 0.3s;
+            border: none;
+            outline: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+            background: var(--kaspi-red-dark);
+            box-shadow: 0 0 30px rgba(229, 9, 20, 0.6);
+        }
+
+        input, select {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px;
+            color: white;
+            width: 100%;
+            margin-bottom: 20px;
+            outline: none;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--kaspi-red);
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-silver);
+            margin-bottom: 8px;
+            margin-left: 4px;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 280px;
+            margin-top: 10px;
+        }
+
+        #theme-toggle {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        #theme-toggle:active {
+            transform: scale(0.9);
+        }
+
+        .inventory-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
+        }
+        
+        .inv-details {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .inv-meta {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .delete-btn {
+            color: #ff4d4d;
+            padding: 0 8px;
+            font-size: 24px;
+            cursor: pointer;
+            margin-left: 10px;
+            opacity: 0.6;
+        }
+
+        .delete-btn:hover { opacity: 1; }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="bg-glow"></div>
+    <!-- PRELOADER -->
+    <div id="preloader">
+        <div class="liquid-bg">
+            <div class="blob" style="width: 400px; height: 400px; background: #E50914; top: -10%; left: -10%;"></div>
+            <div class="blob" style="width: 350px; height: 350px; background: #8B0000; bottom: -5%; right: -5%; animation-delay: -2s;"></div>
+            <div class="blob" style="width: 300px; height: 300px; background: #FFD700; top: 40%; left: 60%; animation-delay: -5s; opacity: 0.2;"></div>
+        </div>
+        <svg id="hello-text-svg" viewBox="0 0 500 150">
+            <text x="50%" y="85" id="hello-plain-text" font-family="'Great Vibes', cursive" font-size="90" fill="none" stroke="#E50914" stroke-width="2" text-anchor="middle">Seller BI</text>
+        </svg>
+    </div>
+
+    <!-- HEADER -->
+    <header>
+        <div class="flex items-center">
+            <img src="logo.png" id="app-logo" style="width: 44px; height: 44px; border-radius: 10px; margin-right: 12px; object-fit: cover; background: white; padding: 2px; border: 1px solid var(--glass-border); box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+            <div>
+                <h1 class="text-white text-base sm:text-lg font-bold leading-none">Seller BI <span style="color:var(--kaspi-red)">v2.0</span></h1>
+                <p class="text-[10px] text-silver font-medium mt-1 uppercase tracking-wider">powered by zhumash tech</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div id="user-profile-header" class="hidden sm:block text-right">
+                <div id="user-name-header" class="text-[13px] font-semibold">Guest User</div>
+                <div id="user-role-header" class="text-[10px] text-silver uppercase">Standard Member</div>
+            </div>
+            <div id="auth-buttons" class="flex items-center gap-2">
+                <button id="login-btn" class="hidden text-[10px] font-bold text-white bg-red-600 px-3 py-1.5 rounded-lg active:scale-95 transition-transform uppercase">Вход</button>
+                <button id="logout-btn" class="hidden text-[10px] font-bold text-silver border border-silver/30 px-3 py-1.5 rounded-lg active:scale-95 transition-transform uppercase">Выход</button>
+            </div>
+            <button id="theme-toggle">🌙</button>
+        </div>
+    </header>
+
+    <!-- DASHBOARD SCREEN -->
+    <div id="screen-dashboard" class="screen screen-content active">
+        <div class="grid grid-cols-2 gap-5">
+            <div class="glass-card stat-card">
+                <div>
+                    <span class="stat-label">Выручка Kaspi</span>
+                    <div id="stat-revenue" class="stat-value">0 ₸</div>
+                </div>
+                <div class="text-[10px] text-green-400 font-medium">▲ 12.4% <span class="text-silver">vs prev</span></div>
+            </div>
+            <div class="glass-card stat-card">
+                <div>
+                    <span class="stat-label">Себестоимость</span>
+                    <div id="stat-cost" class="stat-value">0 ₸</div>
+                </div>
+                <div class="text-[10px] text-silver font-medium">● 49.5% of rev</div>
+            </div>
+            <div class="glass-card stat-card">
+                <div>
+                    <span class="stat-label">Чистая Прибыль</span>
+                    <div id="stat-profit" class="stat-value" style="color:var(--kaspi-red)">0 ₸</div>
+                </div>
+                <div class="text-[10px] text-green-400 font-medium">▲ 8.2% <span class="text-silver">ROI 87%</span></div>
+            </div>
+            <div class="glass-card stat-card">
+                <div>
+                    <span class="stat-label">Маржинальность</span>
+                    <div id="stat-margin" class="stat-value">0%</div>
+                </div>
+                <div class="text-[10px] text-silver font-medium">Target: 45.0%</div>
+            </div>
+        </div>
+
+        <div class="glass-card mt-6 p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Динамика продаж (7 дней)</h3>
+                <div class="flex gap-4 text-[10px] text-silver uppercase font-bold">
+                    <span class="flex items-center gap-1"><i class="w-2 h-2 rounded-full bg-red-600 inline-block"></i> Sales</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+
+        <div class="glass-card mt-6 p-6">
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3">Smart Insights</h3>
+            <p class="text-xs text-silver leading-relaxed font-medium">
+                Your profitability has increased by <span class="text-green-400">2.4%</span> in the last 7 days. The main driver is logistics optimization and reduced return rates.
+            </p>
+        </div>
+    </div>
+
+    <!-- SALES SCREEN -->
+    <div id="screen-sales" class="screen screen-content">
+        <h2 class="text-2xl font-bold mb-6 tracking-tight">Добавить Продажу</h2>
+        <div class="glass-card p-8">
+            <form id="sales-form">
+                <div class="mb-4">
+                    <label>Название товара</label>
+                    <input type="text" id="sale-name" placeholder="Напр: iPhone 15 Pro Max" required>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-5">
+                    <div>
+                        <label>Себестоимость (₸)</label>
+                        <input type="number" id="sale-cost" placeholder="0" required>
+                    </div>
+                    <div>
+                        <label>Цена продажи (₸)</label>
+                        <input type="number" id="sale-price" placeholder="0" required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-5">
+                    <div>
+                        <label>Количество шт.</label>
+                        <input type="number" id="sale-qty" value="1" min="1" required>
+                    </div>
+                    <div>
+                        <label>Дата сделки</label>
+                        <input type="date" id="sale-date" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary mt-4 accent-shadow">ЗАПИСАТЬ В BI CLOUD</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- INVENTORY SCREEN -->
+    <div id="screen-stock" class="screen screen-content">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-bold tracking-tight">Склад / Остатки</h2>
+            <span id="stock-count" class="bg-red-600/20 text-red-500 border border-red-500/30 text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-widest">0 ТОВАРОВ</span>
+        </div>
+        
+        <div class="glass-card p-6">
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Текущие запасы</h3>
+            <div id="inventory-list">
+                <!-- Data from Firestore -->
+                <div class="p-12 text-center text-silver text-xs font-medium italic">Загрузка данных из облака...</div>
+            </div>
+        </div>
+
+        <div class="glass-card mt-6 p-6">
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-silver font-medium uppercase tracking-wider">Общая ценность склада:</span>
+                <span id="total-inventory-value" class="text-xl font-bold text-white tracking-tight">0 ₸</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MANAGEMENT SCREEN -->
+    <div id="screen-manage" class="screen screen-content">
+        <h2 class="text-2xl font-bold mb-6 tracking-tight">Управление</h2>
+        <div class="glass-card p-8">
+            <h3 class="text-sm font-bold text-red-500 uppercase tracking-widest mb-6">Глобальные Настройки</h3>
+            <div class="settings-grid">
+                <div>
+                    <label>Комиссия Kaspi (%)</label>
+                    <input type="number" id="cfg-kaspi-fee" value="15" step="0.5">
+                </div>
+                <div>
+                    <label>Процент Налога (ИП/ТОО)</label>
+                    <input type="number" id="cfg-tax" value="3" readonly>
+                </div>
+                <div>
+                    <label>Доп. Расходы на ед. (₸)</label>
+                    <input type="number" id="cfg-overhead" value="500">
+                </div>
+            </div>
+            <p class="text-[11px] text-silver/60 mt-4 font-medium italic leading-relaxed">
+                * Изменения применяются мгновенно ко всем расчетам прибыли на дашборде. Данные кэшируются локально.
+            </p>
+            <button id="save-settings" class="btn-primary mt-8">ОБНОВИТЬ СИСТЕМНЫЕ ПАРАМЕТРЫ</button>
+        </div>
+
+        <div class="glass-card mt-6 p-8 flex items-center justify-between">
+            <div class="flex items-center gap-5">
+                <div id="user-avatar" class="w-14 h-14 rounded-2xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center font-black text-xl shadow-lg shadow-red-600/20 text-white overflow-hidden">
+                    <span id="user-initials">?</span>
+                </div>
+                <div>
+                    <p id="user-full-name" class="font-bold text-lg text-white leading-tight">Authenticating...</p>
+                    <p id="user-email-display" class="text-xs text-silver font-medium lowercase tracking-tight">Please sign in</p>
+                </div>
+            </div>
+            <div id="account-status-tag" class="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-silver uppercase tracking-widest">OFFLINE</div>
+        </div>
+    </div>
+
+    <!-- TAB BAR -->
+    <nav class="tab-bar">
+        <a href="#" class="tab-item active" data-screen="dashboard">
+            <svg class="tab-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+            <span>Дашборд</span>
+        </a>
+        <a href="#" class="tab-item" data-screen="sales">
+            <svg class="tab-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            <span>Продажи</span>
+        </a>
+        <a href="#" class="tab-item" data-screen="stock">
+            <svg class="tab-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 14H4v-4h11v4zm5 0h-4v-4h4v4zm0-5H4V9h16v4z"/></svg>
+            <span>Склад</span>
+        </a>
+        <a href="#" class="tab-item" data-screen="manage">
+            <svg class="tab-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            <span>Управление</span>
+        </a>
+    </nav>
+
+    <!-- LOGIN OVERLAY -->
+    <div id="login-screen" class="fixed inset-0 z-[2000] bg-black/80 backdrop-blur-3xl flex items-center justify-center p-6 transition-opacity duration-500 opacity-0 pointer-events-none">
+        <div class="glass-card max-w-sm w-full p-10 text-center scale-90 transition-transform duration-500">
+            <img src="logo.png" class="w-20 h-20 mx-auto mb-6 rounded-2xl shadow-xl border border-white/10">
+            <h2 class="text-2xl font-bold text-white mb-2">Seller BI v2.0</h2>
+            <p class="text-silver text-sm mb-8 font-medium">Добро пожаловать в элитарную аналитику Kaspi. Пожалуйста, авторизуйтесь.</p>
+            <button id="google-login-btn" class="bg-white text-black font-bold py-4 px-6 rounded-xl w-full flex items-center justify-center gap-3 shadow-lg shadow-white/5 hover:scale-105 active:scale-95 transition-all">
+                <svg class="w-6 h-6" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/><path fill="none" d="M1 1L23 23"/></svg>
+                Google Sign In
+            </button>
+            <p class="text-[10px] text-silver/50 mt-8 uppercase tracking-widest font-bold">powered by zhumash tech</p>
+        </div>
+    </div>
+
+    <!-- JS FIREBASE & LOGIC -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit, deleteDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        // --- CONFIG ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvKYiufhl2jWGHRQUns_nIrFlodE2MlME",
+            authDomain: "://firebaseapp.com",
+            projectId: "ssr-web-17b90",
+            storageBucket: "ssr-web-17b90.firebasestorage.app",
+            messagingSenderId: "635491971935",
+            appId: "1:635491971935:web:3b460ae49347d1b9eafcea",
+            measurementId: "G-F9MHXV1GCX"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // --- AUTH LOGIC ---
+        const loginScreen = document.getElementById('login-screen');
+        const googleLoginBtn = document.getElementById('google-login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const loginBtnHeader = document.getElementById('login-btn');
+
+        function toggleLoginScreen(show) {
+            if (show) {
+                loginScreen.classList.remove('pointer-events-none');
+                loginScreen.classList.add('opacity-100');
+                loginScreen.querySelector('.glass-card').classList.add('scale-100');
+            } else {
+                loginScreen.classList.add('pointer-events-none');
+                loginScreen.classList.remove('opacity-100');
+                loginScreen.querySelector('.glass-card').classList.remove('scale-100');
+            }
+        }
+
+        googleLoginBtn.onclick = () => signInWithPopup(auth, provider).catch(console.error);
+        logoutBtn.onclick = () => signOut(auth).catch(console.error);
+        loginBtnHeader.onclick = () => toggleLoginScreen(true);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                toggleLoginScreen(false);
+                updateUIForUser(user);
+                listenToSales();
+                listenToInventory();
+                document.getElementById('logout-btn').classList.remove('hidden');
+                document.getElementById('login-btn').classList.add('hidden');
+            } else {
+                updateUIForGuest();
+                document.getElementById('logout-btn').classList.add('hidden');
+                document.getElementById('login-btn').classList.remove('hidden');
+                // Don't auto-show login if preloader is still active, wait for preloader to end
+            }
+        });
+
+        function updateUIForUser(user) {
+            document.getElementById('user-name-header').innerText = user.displayName || 'Seller';
+            document.getElementById('user-role-header').innerText = 'Premium Member';
+            document.getElementById('user-full-name').innerText = user.displayName;
+            document.getElementById('user-email-display').innerText = user.email;
+            document.getElementById('user-initials').innerText = (user.displayName || '?').split(' ').map(n => n[0]).join('');
+            document.getElementById('account-status-tag').innerText = 'ACTIVE';
+            document.getElementById('account-status-tag').classList.replace('text-silver', 'text-green-400');
+            
+            if (user.photoURL) {
+                document.getElementById('user-avatar').innerHTML = `<img src="${user.photoURL}" class="w-full h-full object-cover">`;
+            }
+        }
+
+        function updateUIForGuest() {
+            document.getElementById('user-name-header').innerText = 'Guest User';
+            document.getElementById('user-role-header').innerText = 'Limited Access';
+            document.getElementById('user-full-name').innerText = 'Авторизуйтесь';
+            document.getElementById('user-email-display').innerText = 'Вход не выполнен';
+            document.getElementById('user-initials').innerText = '?';
+            document.getElementById('account-status-tag').innerText = 'OFFLINE';
+            document.getElementById('account-status-tag').classList.replace('text-green-400', 'text-silver');
+            document.getElementById('user-avatar').innerHTML = `<span id="user-initials">?</span>`;
+        }
+
+        // --- STATE ---
+        let salesData = [];
+        let inventoryData = [];
+        let salesChart = null;
+
+        // --- THEME ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        function setTheme(theme) {
+            if (theme === 'light') {
+                body.classList.add('light-theme');
+                themeToggle.innerText = '☀️';
+            } else {
+                body.classList.remove('light-theme');
+                themeToggle.innerText = '🌙';
+            }
+            localStorage.setItem('sbi_theme', theme);
+            if (salesChart) {
+                salesChart.options.scales.x.ticks.color = getComputedStyle(document.body).getPropertyValue('--text-silver');
+                salesChart.update();
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = body.classList.contains('light-theme') ? 'dark' : 'light';
+            setTheme(currentTheme);
+        });
+
+        // Initialize theme
+        const savedTheme = localStorage.getItem('sbi_theme') || 'dark';
+        setTheme(savedTheme);
+
+        // --- ANIMATIONS ---
+        window.addEventListener('load', () => {
+            const tl = gsap.timeline();
+            
+            // Register Text Plugin
+            gsap.registerPlugin(TextPlugin);
+
+            // Handwriting animation
+            tl.from("#hello-plain-text", {
+                duration: 2.5,
+                strokeDasharray: 1000,
+                strokeDashoffset: 1000,
+                ease: "power2.inOut"
+            })
+            .to("#preloader", {
+                duration: 1.2,
+                y: "-100%",
+                ease: "power4.inOut",
+                delay: 0.3,
+                onComplete: () => {
+                    if (!auth.currentUser) toggleLoginScreen(true);
+                }
+            });
+
+            initChart();
+            loadSettings();
+            listenToSales();
+            listenToInventory();
+        });
+
+        // Tab Switching with GSAP
+        document.querySelectorAll('.tab-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const screenId = btn.dataset.screen;
+                const activeScreen = document.querySelector('.screen.active');
+                const targetScreen = document.getElementById('screen-' + screenId);
+
+                if (activeScreen.id === targetScreen.id) return;
+
+                // Tab items styling
+                document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Page Transition
+                gsap.to(activeScreen, {
+                    duration: 0.3,
+                    opacity: 0,
+                    x: -50,
+                    filter: "blur(8px)",
+                    scale: 0.95,
+                    onComplete: () => {
+                        activeScreen.classList.remove('active');
+                        gsap.set(targetScreen, { x: 50, opacity: 0, filter: "blur(8px)", scale: 0.95, visibility: 'visible' });
+                        targetScreen.classList.add('active');
+                        gsap.to(targetScreen, {
+                            duration: 0.4,
+                            x: 0,
+                            opacity: 1,
+                            filter: "blur(0px)",
+                            scale: 1,
+                            ease: "power2.out"
+                        });
+                    }
+                });
+            });
+        });
+
+        // --- CHART ---
+        function initChart() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            salesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Выручка',
+                        data: [],
+                        borderColor: '#E50914',
+                        backgroundColor: 'rgba(229, 9, 20, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 3,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { display: false },
+                        x: { 
+                            grid: { display: false },
+                            ticks: { color: '#A1A1AA', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- ERROR HANDLING ---
+        function handleFirestoreError(error, operationType, path) {
+            const errInfo = {
+                error: error instanceof Error ? error.message : String(error),
+                operationType,
+                path,
+                timestamp: new Date().toISOString()
+            };
+            console.error('Firestore Error: ', JSON.stringify(errInfo));
+        }
+
+        // --- FIRESTORE ---
+        function listenToSales() {
+            const q = query(collection(db, "sbi_sales"), orderBy("date", "desc"), limit(20));
+            onSnapshot(q, (snapshot) => {
+                salesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                updateDashboard();
+            }, (error) => handleFirestoreError(error, 'get', 'sbi_sales'));
+        }
+
+        function listenToInventory() {
+            onSnapshot(collection(db, "sbi_inventory"), (snapshot) => {
+                inventoryData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderInventory();
+                updateDashboard();
+            }, (error) => handleFirestoreError(error, 'get', 'sbi_inventory'));
+        }
+
+        async function addSale(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = "ЗАГРУЗКА...";
+            btn.disabled = true;
+
+            const sale = {
+                name: document.getElementById('sale-name').value,
+                cost: parseFloat(document.getElementById('sale-cost').value),
+                price: parseFloat(document.getElementById('sale-price').value),
+                qty: parseInt(document.getElementById('sale-qty').value),
+                date: document.getElementById('sale-date').value,
+                createdAt: serverTimestamp()
+            };
+
+            try {
+                await addDoc(collection(db, "sbi_sales"), sale);
+                
+                // Update inventory (simple mock logic: assume selling reduces stock if exists, or adds new inventory entry)
+                // In a real app we'd search for the item in inventory
+                const invRef = collection(db, "sbi_inventory");
+                await addDoc(invRef, {
+                    name: sale.name,
+                    qty: 50, // placeholder starting stock
+                    cost: sale.cost,
+                    lastSold: sale.date
+                });
+
+                e.target.reset();
+                btn.innerText = "УСПЕШНО!";
+                setTimeout(() => { btn.innerText = "ЗАПИСАТЬ В CLOUD"; btn.disabled = false; }, 2000);
+            } catch (err) {
+                console.error(err);
+                btn.innerText = "ОШИБКА";
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteItem(id) {
+            if(confirm("Удалить товар из склада?")) {
+                await deleteDoc(doc(db, "sbi_inventory", id));
+            }
+        }
+
+        // --- UI UPDATES ---
+        function updateDashboard() {
+            const kaspiFee = parseFloat(document.getElementById('cfg-kaspi-fee').value) / 100;
+            const taxRate = 0.03;
+            const overhead = parseFloat(document.getElementById('cfg-overhead').value);
+
+            let totalRev = 0;
+            let totalCost = 0;
+            let totalProfit = 0;
+
+            const chartData = [...salesData].reverse();
+            const labels = chartData.map(s => s.date.split('-').slice(1).join('.'));
+            const revs = chartData.map(s => {
+                const r = s.price * s.qty;
+                totalRev += r;
+                totalCost += s.cost * s.qty;
+                
+                // Profit = (Price - Cost - Fee - Tax - Overhead) * Qty
+                const fee = s.price * kaspiFee;
+                const tax = s.price * taxRate;
+                const p = (s.price - s.cost - fee - tax - (overhead / s.qty)) * s.qty;
+                totalProfit += p;
+                
+                return r;
+            });
+
+            document.getElementById('stat-revenue').innerText = Math.round(totalRev).toLocaleString();
+            document.getElementById('stat-cost').innerText = Math.round(totalCost).toLocaleString();
+            document.getElementById('stat-profit').innerText = Math.round(totalProfit).toLocaleString();
+            
+            const margin = totalRev > 0 ? (totalProfit / totalRev) * 100 : 0;
+            document.getElementById('stat-margin').innerText = margin.toFixed(1) + '%';
+
+            if(salesChart) {
+                salesChart.data.labels = labels;
+                salesChart.data.datasets[0].data = revs;
+                salesChart.update();
+            }
+        }
+
+        function renderInventory() {
+            const list = document.getElementById('inventory-list');
+            const count = document.getElementById('stock-count');
+            const totalVal = document.getElementById('total-inventory-value');
+            
+            list.innerHTML = '';
+            let sum = 0;
+
+            if (inventoryData.length === 0) {
+                list.innerHTML = '<div class="p-12 text-center text-silver text-xs font-medium opacity-50">Склад пуст. Добавьте продажи, чтобы увидеть товары.</div>';
+            }
+
+            inventoryData.forEach(item => {
+                const itemTotal = item.qty * item.cost;
+                sum += itemTotal;
+
+                const div = document.createElement('div');
+                div.className = "inventory-item";
+                div.innerHTML = `
+                    <div class="inv-details">
+                        <span class="font-bold text-white text-sm tracking-tight">${item.name}</span>
+                        <span class="text-[10px] text-silver uppercase font-bold tracking-widest">${item.qty} шт в наличии</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="inv-meta">
+                            <span class="text-sm font-bold text-white">${item.cost.toLocaleString()} ₸</span>
+                            <span class="text-[10px] ${item.qty > 10 ? 'text-green-500' : 'text-kaspi-red'} font-bold uppercase tracking-widest">${item.qty > 10 ? 'Ликвидный' : 'Низкий остаток'}</span>
+                        </div>
+                        <span class="delete-btn" onclick="window.deleteItem('${item.id}')">×</span>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+
+            count.innerText = `${inventoryData.length} ТОВАРОВ`;
+            totalVal.innerText = `${Math.round(sum).toLocaleString()} ₸`;
+        }
+
+        // --- SETTINGS ---
+        function loadSettings() {
+            const saved = localStorage.getItem('sbi_settings');
+            if(saved) {
+                const s = JSON.parse(saved);
+                document.getElementById('cfg-kaspi-fee').value = s.fee;
+                document.getElementById('cfg-overhead').value = s.overhead;
+            }
+        }
+
+        document.getElementById('save-settings').addEventListener('click', () => {
+            const settings = {
+                fee: document.getElementById('cfg-kaspi-fee').value,
+                overhead: document.getElementById('cfg-overhead').value
+            };
+            localStorage.setItem('sbi_settings', JSON.stringify(settings));
+            updateDashboard();
+            
+            const btn = document.getElementById('save-settings');
+            btn.innerText = "СОХРАНЕНО!";
+            setTimeout(() => btn.innerText = "ОБНОВИТЬ ГЛОБАЛЬНЫЙ РАСЧЕТ", 2000);
+        });
+
+        // Form Submit
+        document.getElementById('sales-form').addEventListener('submit', addSale);
+        
+        // Expose to window for inline onclick
+        window.deleteItem = deleteItem;
+
+    </script>
+</body>
+</html>
